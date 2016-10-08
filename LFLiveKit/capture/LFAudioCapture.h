@@ -6,6 +6,8 @@
 //  Copyright © 2016年 倾慕. All rights reserved.
 //
 
+#ifdef LFLIVE_CAPTURE_ENABLED
+
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
 
@@ -50,9 +52,11 @@ extern NSString *_Nullable const LFAudioComponentFailedToCreateNotification;
 + (nullable instancetype)new UNAVAILABLE_ATTRIBUTE;
 
 /**
-   The designated initializer. Multiple instances with the same configuration will make the
-   capture unstable.
+ The designated initializer. Multiple instances with the same configuration will make the
+ capture unstable.
  */
 - (nullable instancetype)initWithAudioConfiguration:(nullable LFLiveAudioConfiguration *)configuration NS_DESIGNATED_INITIALIZER;
 
 @end
+
+#endif

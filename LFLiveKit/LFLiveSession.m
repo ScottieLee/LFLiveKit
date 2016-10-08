@@ -7,8 +7,12 @@
 //
 
 #import "LFLiveSession.h"
+
+#ifdef LFLIVE_CAPTURE_ENABLED
 #import "LFVideoCapture.h"
 #import "LFAudioCapture.h"
+#endif
+
 #import "LFHardwareVideoEncoder.h"
 #import "LFHardwareAudioEncoder.h"
 #import "LFH264VideoEncoder.h"
@@ -18,16 +22,23 @@
 #import "LFH264VideoEncoder.h"
 
 
+#ifdef LFLIVE_CAPTURE_ENABLED
 @interface LFLiveSession ()<LFAudioCaptureDelegate, LFVideoCaptureDelegate, LFAudioEncodingDelegate, LFVideoEncodingDelegate, LFStreamSocketDelegate>
+#else
+@interface LFLiveSession ()<LFAudioEncodingDelegate, LFVideoEncodingDelegate, LFStreamSocketDelegate>
+#endif
 
 /// 音频配置
 @property (nonatomic, strong) LFLiveAudioConfiguration *audioConfiguration;
 /// 视频配置
 @property (nonatomic, strong) LFLiveVideoConfiguration *videoConfiguration;
+
+#ifdef LFLIVE_CAPTURE_ENABLED
 /// 声音采集
 @property (nonatomic, strong) LFAudioCapture *audioCaptureSource;
 /// 视频采集
 @property (nonatomic, strong) LFVideoCapture *videoCaptureSource;
+#endif
 /// 音频编码
 @property (nonatomic, strong) id<LFAudioEncoding> audioEncoder;
 /// 视频编码
@@ -74,12 +85,18 @@
 
 #pragma mark -- LifeCycle
 - (instancetype)initWithAudioConfiguration:(nullable LFLiveAudioConfiguration *)audioConfiguration videoConfiguration:(nullable LFLiveVideoConfiguration *)videoConfiguration {
+#ifdef LFLIVE_CAPTURE_ENABLED
     return [self initWithAudioConfiguration:audioConfiguration videoConfiguration:videoConfiguration captureType:LFLiveCaptureDefaultMask];
+#else
+    return [self initWithAudioConfiguration:audioConfiguration videoConfiguration:videoConfiguration captureType:LFLiveInputMaskAll];
+#endif
 }
 
 - (nullable instancetype)initWithAudioConfiguration:(nullable LFLiveAudioConfiguration *)audioConfiguration videoConfiguration:(nullable LFLiveVideoConfiguration *)videoConfiguration captureType:(LFLiveCaptureTypeMask)captureType{
+#ifdef LFLIVE_CAPTURE_ENABLED
     if((captureType & LFLiveCaptureMaskAudio || captureType & LFLiveInputMaskAudio) && !audioConfiguration) @throw [NSException exceptionWithName:@"LFLiveSession init error" reason:@"audioConfiguration is nil " userInfo:nil];
     if((captureType & LFLiveCaptureMaskVideo || captureType & LFLiveInputMaskVideo) && !videoConfiguration) @throw [NSException exceptionWithName:@"LFLiveSession init error" reason:@"videoConfiguration is nil " userInfo:nil];
+#endif
     if (self = [super init]) {
         _audioConfiguration = audioConfiguration;
         _videoConfiguration = videoConfiguration;
@@ -90,8 +107,10 @@
 }
 
 - (void)dealloc {
+#ifdef LFLIVE_CAPTURE_ENABLED
     _videoCaptureSource.running = NO;
     _audioCaptureSource.running = NO;
+#endif
 }
 
 #pragma mark -- CustomMethod
@@ -131,6 +150,8 @@
 }
 
 #pragma mark -- CaptureDelegate
+
+#ifdef LFLIVE_CAPTURE_ENABLED
 - (void)captureOutput:(nullable LFAudioCapture *)capture audioData:(nullable NSData*)audioData {
     if (self.uploading) [self.audioEncoder encodeAudioData:audioData timeStamp:NOW];
 }
@@ -138,6 +159,8 @@
 - (void)captureOutput:(nullable LFVideoCapture *)capture pixelBuffer:(nullable CVPixelBufferRef)pixelBuffer {
     if (self.uploading) [self.videoEncoder encodeVideoData:pixelBuffer timeStamp:NOW];
 }
+
+#endif
 
 #pragma mark -- EncoderDelegate
 - (void)audioEncoder:(nullable id<LFAudioEncoding>)encoder audioFrame:(nullable LFAudioFrame *)frame {
@@ -197,7 +220,11 @@
 }
 
 - (void)socketBufferStatus:(nullable id<LFStreamSocket>)socket status:(LFLiveBuffferState)status {
+#ifdef LFLIVE_CAPTURE_ENABLED
     if((self.captureType & LFLiveCaptureMaskVideo || self.captureType & LFLiveInputMaskVideo) && self.adaptiveBitrate){
+#else
+    if((self.captureType & LFLiveInputMaskVideo) && self.adaptiveBitrate){
+#endif
         NSUInteger videoBitRate = [self.videoEncoder videoBitRate];
         if (status == LFLiveBuffferDecline) {
             if (videoBitRate < _videoConfiguration.videoMaxBitRate) {
@@ -214,8 +241,10 @@
         }
     }
 }
-
+    
 #pragma mark -- Getter Setter
+    
+#ifdef LFLIVE_CAPTURE_ENABLED
 - (void)setRunning:(BOOL)running {
     if (_running == running) return;
     [self willChangeValueForKey:@"running"];
@@ -363,6 +392,7 @@
     }
     return _videoCaptureSource;
 }
+#endif
 
 - (id<LFAudioEncoding>)audioEncoder {
     if (!_audioEncoder) {
@@ -415,14 +445,19 @@
 }
 
 - (BOOL)AVAlignment{
+#ifdef LFLIVE_CAPTURE_ENABLED
     if((self.captureType & LFLiveCaptureMaskAudio || self.captureType & LFLiveInputMaskAudio) &&
        (self.captureType & LFLiveCaptureMaskVideo || self.captureType & LFLiveInputMaskVideo)
+#else
+    if((self.captureType & LFLiveInputMaskAudio) &&
+        (self.captureType & LFLiveInputMaskVideo)
+#endif
        ){
         if(self.hasCaptureAudio && self.hasKeyFrameVideo) return YES;
         else  return NO;
-    }else{
+    } else {
         return YES;
     }
 }
-
+       
 @end

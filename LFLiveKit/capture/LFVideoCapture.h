@@ -6,6 +6,8 @@
 //  Copyright © 2016年 倾慕. All rights reserved.
 //
 
+#ifdef LFLIVE_CAPTURE_ENABLED
+
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
 
@@ -81,9 +83,11 @@
 + (nullable instancetype)new UNAVAILABLE_ATTRIBUTE;
 
 /**
-   The designated initializer. Multiple instances with the same configuration will make the
-   capture unstable.
+ The designated initializer. Multiple instances with the same configuration will make the
+ capture unstable.
  */
 - (nullable instancetype)initWithVideoConfiguration:(nullable LFLiveVideoConfiguration *)configuration NS_DESIGNATED_INITIALIZER;
 
 @end
+
+#endif

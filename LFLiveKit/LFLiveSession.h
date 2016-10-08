@@ -26,26 +26,33 @@
 #endif
 
 
-
 typedef NS_ENUM(NSInteger,LFLiveCaptureType) {
-    LFLiveCaptureAudio,         //< capture only audio
-    LFLiveCaptureVideo,         //< capture onlt video
-    LFLiveInputAudio,           //< only audio (External input audio)
-    LFLiveInputVideo,           //< only video (External input video)
+#ifdef LFLIVE_CAPTURE_ENABLED
+    LFLiveCaptureAudio = 0,         //< capture only audio
+    LFLiveCaptureVideo = 1,         //< capture onlt video
+#endif
+    LFLiveInputAudio = 2,           //< only audio (External input audio)
+    LFLiveInputVideo = 3,           //< only video (External input video)
 };
 
 
 ///< 用来控制采集类型（可以内部采集也可以外部传入等各种组合，支持单音频与单视频,外部输入适用于录屏，无人机等外设介入）
 typedef NS_ENUM(NSInteger,LFLiveCaptureTypeMask) {
+#ifdef LFLIVE_CAPTURE_ENABLED
     LFLiveCaptureMaskAudio = (1 << LFLiveCaptureAudio),                                 ///< only inner capture audio (no video)
     LFLiveCaptureMaskVideo = (1 << LFLiveCaptureVideo),                                 ///< only inner capture video (no audio)
+#endif
     LFLiveInputMaskAudio = (1 << LFLiveInputAudio),                                     ///< only outer input audio (no video)
     LFLiveInputMaskVideo = (1 << LFLiveInputVideo),                                     ///< only outer input video (no audio)
+#ifdef LFLIVE_CAPTURE_ENABLED
     LFLiveCaptureMaskAll = (LFLiveCaptureMaskAudio | LFLiveCaptureMaskVideo),           ///< inner capture audio and video
+#endif
     LFLiveInputMaskAll = (LFLiveInputMaskAudio | LFLiveInputMaskVideo),                 ///< outer input audio and video(method see pushVideo and pushAudio)
+#ifdef LFLIVE_CAPTURE_ENABLED
     LFLiveCaptureMaskAudioInputVideo = (LFLiveCaptureMaskAudio | LFLiveInputMaskVideo), ///< inner capture audio and outer input video(method pushVideo and setRunning)
     LFLiveCaptureMaskVideoInputAudio = (LFLiveCaptureMaskVideo | LFLiveInputMaskAudio), ///< inner capture video and outer input audio(method pushAudio and setRunning)
     LFLiveCaptureDefaultMask = LFLiveCaptureMaskAll                                     ///< default is inner capture audio and video
+#endif
 };
 
 @class LFLiveSession;
@@ -71,6 +78,7 @@ typedef NS_ENUM(NSInteger,LFLiveCaptureTypeMask) {
 /** The delegate of the capture. captureData callback */
 @property (nullable, nonatomic, weak) id<LFLiveSessionDelegate> delegate;
 
+#ifdef LFLIVE_CAPTURE_ENABLED
 /** The running control start capture or stop capture*/
 @property (nonatomic, assign) BOOL running;
 
@@ -101,6 +109,8 @@ typedef NS_ENUM(NSInteger,LFLiveCaptureTypeMask) {
 /** The muted control callbackAudioData,muted will memset 0.*/
 @property (nonatomic, assign) BOOL muted;
 
+#endif
+
 /*  The adaptiveBitrate control auto adjust bitrate. Default is NO */
 @property (nonatomic, assign) BOOL adaptiveBitrate;
 
@@ -122,9 +132,10 @@ typedef NS_ENUM(NSInteger,LFLiveCaptureTypeMask) {
 /** The reconnectCount control reconnect count (重连次数) *.*/
 @property (nonatomic, assign) NSUInteger reconnectCount;
 
-/*** The warterMarkView control whether the watermark is displayed or not ,if set ni,will remove watermark,otherwise add. 
+/*** The warterMarkView control whether the watermark is displayed or not ,if set ni,will remove watermark,otherwise add.
  set alpha represent mix.Position relative to outVideoSize.
  *.*/
+#ifdef LFLIVE_CAPTURE_ENABLED
 @property (nonatomic, strong, nullable) UIView *warterMarkView;
 
 /* The currentImage is videoCapture shot */
@@ -136,6 +147,8 @@ typedef NS_ENUM(NSInteger,LFLiveCaptureTypeMask) {
 /* The saveLocalVideoPath is save the local video  path */
 @property (nonatomic, strong, nullable) NSURL *saveLocalVideoPath;
 
+#endif
+
 #pragma mark - Initializer
 ///=============================================================================
 /// @name Initializer
@@ -144,8 +157,8 @@ typedef NS_ENUM(NSInteger,LFLiveCaptureTypeMask) {
 + (nullable instancetype)new UNAVAILABLE_ATTRIBUTE;
 
 /**
-   The designated initializer. Multiple instances with the same configuration will make the
-   capture unstable.
+ The designated initializer. Multiple instances with the same configuration will make the
+ capture unstable.
  */
 - (nullable instancetype)initWithAudioConfiguration:(nullable LFLiveAudioConfiguration *)audioConfiguration videoConfiguration:(nullable LFLiveVideoConfiguration *)videoConfiguration;
 

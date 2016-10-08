@@ -6,6 +6,8 @@
 //  Copyright © 2016年 倾慕. All rights reserved.
 //
 
+#ifdef LFLIVE_CAPTURE_ENABLED
+
 #import "LFVideoCapture.h"
 #import "LFGPUImageBeautyFilter.h"
 #import "LFGPUImageEmptyFilter.h"
@@ -46,7 +48,7 @@
 - (instancetype)initWithVideoConfiguration:(LFLiveVideoConfiguration *)configuration {
     if (self = [super init]) {
         _configuration = configuration;
-
+        
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willEnterBackground:) name:UIApplicationWillResignActiveNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willEnterForeground:) name:UIApplicationDidBecomeActiveNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(statusBarChanged:) name:UIApplicationWillChangeStatusBarOrientationNotification object:nil];
@@ -363,7 +365,7 @@
 - (void)statusBarChanged:(NSNotification *)notification {
     NSLog(@"UIApplicationWillChangeStatusBarOrientationNotification. UserInfo: %@", notification.userInfo);
     UIInterfaceOrientation statusBar = [[UIApplication sharedApplication] statusBarOrientation];
-
+    
     if(self.configuration.autorotate){
         if (self.configuration.landscape) {
             if (statusBar == UIInterfaceOrientationLandscapeLeft) {
@@ -382,3 +384,5 @@
 }
 
 @end
+
+#endif
